@@ -1,0 +1,265 @@
+<div class="row">
+	<div id="breadcrumb" class="col-md-12">
+		<ol class="breadcrumb">
+			<li><a href="#">Hapi</a></li>
+			<li><a href="#">Jobs</a></li>
+		</ol>
+	</div>
+</div>
+<div id="JobsController" ng-controller="JobsController" class="row">
+    <div class="col-xs-12">
+        
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-cogs"></i>
+                    <span>Jobs</span>
+                    <div style="display: inline; float: right; margin-right: 300px; margin-top: 0px;" class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="jobsFilter.includeSystemJobs" ng-change="actions.updateJob()">Show system jobs
+                            <i class="fa fa-square-o"></i>
+                        </label>
+                    </div>
+                    <input type="text" placeholder="search" style="position: absolute; right: 90px; height: 22px; top: 2px;" class="ng-valid ng-dirty" ng-model="jobsFilter.searchKeyword">                        </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="expand-link">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                </div>
+                <div class="no-move"></div>
+            </div>
+            <div class="box-content no-padding" style="overflow-x:scroll;">
+                <table id="naviDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Start Time</th>
+                            <!--<th>Source Path</th>
+                            <th>Destination Path</th>-->
+                            <th>Updated</th>
+                            <th>Interval</th>
+                            <!--<th>Description</th>-->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in Jobs | filter: jobsFilter.searchKeyword | filter:{JobType: jobsFilter.JobType} | filter:{ParentJobId: jobsFilter.ParentJobId}" ng-click="setSelected(item); ShowJobPropertiesDialog(selectedItem);" ng-class="{selected: item.JobId === selectedItem.JobId}">
+                            <td>{{item.JobType}}</td>
+                            <td>{{item.SourceItemName}}</td>
+                            <td>{{item.SourceProvider}}</td>
+                            <td>{{item.DestProvider}}</td>
+                            <td>{{item.Status}}</td>
+                            <td>{{item.StartDateFormatted}}</td>
+                            <td>{{item.LastModifiedDateFormatted}}</td>
+                            <td>{{item.ScheduleFormatted}}</td>
+                        </tr>
+                    <tfoot />
+                </table>
+            </div>
+        </div>
+        
+        <!-- Job Property Dialog -->
+        <div id="jobPropertiesDialog" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4>Job Details</h4>
+                    </div>
+                    <div id="JobPropertyBodyDiv" class="modal-body form-horizontal" style="max-height: 380px; overflow: auto">
+
+                        <fieldset>
+                            <legend>Properties</legend>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Type</label>
+                                <label id="JobPropType" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Name</label>
+                                <label id="JobPropName" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">From</label>
+                                <label id="JobPropFrom" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Source Path</label>
+                                <label id="JobPropSourcePath" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">To</label>
+                                <label id="JobPropTo" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Destination Path</label>
+                                <label id="JobPropDestPath" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Status</label>
+                                <label id="JobPropStatus" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Start Time</label>
+                                <label id="JobPropStartTime" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Updated</label>
+                                <label id="JobPropUpdated" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Interval</label>
+                                <label id="JobPropInterval" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Description</label>
+                                <label id="JobPropDescription" class="col-sm-5"></label>
+                            </div>
+                        </fieldset>
+                        <br/>
+                        <fieldset id="JobPropertyMultipleHistory">
+                            <legend>Job History</legend>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Changes Detected</th>
+                                        <th>Start Time</th>
+                                        <th>Destination Path</th>-->
+                                        <th>Updated</th>
+                                    </tr>
+                                </thead>
+                                <tr ng-repeat="item in ChildJobs" ng-click="setSelectedHistory(item); ShowJobPropertyHistoryDialog(selectedHistoryItem);">
+                                    <td>{{item.Status}}</td>
+                                    <td>{{item.Changes}}</td>
+                                    <!--<td>{{item.Progress}}</td>-->
+                                    <td>{{item.StartDateFormatted}}</td>
+                                    <td>{{item.LastModifiedDateFormatted}}</td>
+                                </tr>
+                            </table>                        
+                        </fieldset>
+                        <br/>
+                        <fieldset id="JobPropertySingleHistory">
+                            <legend>History</legend>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Conflict</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tr ng-repeat="item in JobMigrationItems">
+                                    <td>{{item.Status}}</td>
+                                    <td>{{item.ConflictDetails}}</td>
+                                    <td>{{item.Reason}}</td>
+                                </tr>
+                            </table>                        
+                        </fieldset>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="closeJobPropertiesButtonId" type="button" class="btn btn-primary" onclick="$('#jobPropertiesDialog').modal('hide');">Close</button>
+                    </div>
+                </div>
+            </div>
+
+    </div>
+
+        <!-- Job Property Dialog -->
+        <div id="jobPropertyHistoryDialog" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4>Job Property History</h4>
+                    </div>
+                    
+                    <div class="modal-body form-horizontal" style="max-height: 380px; overflow: auto">
+
+                        <fieldset>
+                            <legend>Properties</legend>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Status</label>
+                                <label id="jobHistoryPropertyStatus" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Changes</label>
+                                <label id="jobHistoryPropertyChanges" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Start Time</label>
+                                <label id="jobHistoryPropertyStartTime" class="col-sm-5"></label>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Updated</label>
+                                <label id="jobHistoryPropertyUpdated" class="col-sm-5"></label>
+                            </div>
+                        </fieldset>
+                        <br/>
+                        <fieldset id="JobPropertyDetailHistory">
+                            <legend>Details</legend>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Conflict</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tr ng-repeat="item in JobMigrationItems">
+                                    <td>{{item.Status}}</td>
+                                    <td>{{item.ConflictDetails}}</td>
+                                    <td>{{item.Reason}}</td>
+                                </tr>
+                            </table>                        
+                        </fieldset>
+                        
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="closeJobPropertyHistoryButtonId" type="button" class="btn btn-primary" onclick="$('#jobPropertyHistoryDialog').hide();">Close</button>
+                    </div>
+                </div>
+            </div>
+    </div>
+                
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        // Check whether we need to set the user's picture.  We do if the user's picture hasn't been set yet.  
+        SetUserPic(); // This is done in login, but also here in case that user doesn't have to login because cookies are still valid
+        
+        // Tell AngularJS to compile this dynamically loaded partial HTML so it can handle the databinding
+        var e = angular.element('#JobsController');
+        e.each(function () {
+            var content = $(this);
+            e.injector().invoke(function ($compile) {
+                var scope = angular.element(content).scope();
+                $compile(content)(scope);
+            });
+
+            e.scope().GetJobs();
+            e.scope().$apply()
+        });
+
+        // Handle click event to navigate to new view
+        $('#naviDataTable').on('click', 'a', function (e) {
+            if ($(this).hasClass('ajax-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                var url = $(this).attr('href');
+                window.location.hash = url;
+                LoadAjaxContent(url);
+            }
+        });
+    });
+</script>

@@ -1,0 +1,195 @@
+
+<div class="row">
+	<div id="breadcrumb" class="col-md-12">
+		<ol class="breadcrumb">
+			<li><a href="#">Hapi</a></li>
+			<li><a href="#">Shares</a></li>
+			<li><a href="#">Dropbox Files</a></li>
+		</ol>
+	</div>
+</div>
+<div id="DropboxController" ng-controller="DropboxController" class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-file"></i>
+                    <span>Files</span>
+                    <input placeholder="search" style="position: absolute; right: 90px; height: 22px; top: 2px;" class="ng-valid ng-dirty" ng-model="searchKeyword" type="text">                                                       </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="expand-link">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                </div>
+                <div class="no-move"></div>
+            </div>
+            <div class="box-content no-padding" style="overflow-x:scroll;">
+                <table id="naviDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable" data-toggle="context" data-target="#context-menu">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Modified</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in FilesAndFolders | filter: searchKeyword" ng-click="setSelected(item)" ng-right-click="setSelected(item)" ng-class="{selected: item.FileIdentifier === selectedItem.FileIdentifier}">
+                            <td style="padding: 3px 8px 3px 8px"><a class="fileLink" data-context="{{item}}"><img class="fa" src="{{item.ImageSource}}" style="width:28px;">{{ item.Name }}</a></td>
+                            <td>{{ item.FormattedBytes }}</td>
+                            <td style="color: {{ item.DaysSinceModifiedColor }}">{{ item.DaysSinceModified }} days ago</td>
+                            <td>{{ item.CreationDate }}</td>
+                            <td>{{ item.PathType }}</td>
+                            <td>{{ item.FileIdentifier }}</td>
+                        </tr>
+                    <tfoot />
+                </table>
+            </div>
+        </div>
+        
+        <!-- Context Menu for Files view.  Include under the div where ng-controller is set so we can access scope items like selectedItem -->
+        <div style="position: absolute; z-index: 9999; top: 241px; left: 478px;" id="context-menu">
+            <ul style="" class="dropdown-menu" role="menu">
+                <!--<li><a tabindex="-1" ng-hide="selectedItem.Type !== 1" ng-click="downloadAndOpenItem();">Open</a></li>-->
+                <li><a tabindex="-1" ng-hide="selectedItem.Type !== 1" ng-click="downloadItem();">Download</a></li>
+                <li><a tabindex="-1" ng-click="promptShareFileAsLink();" class="ng-hide" ng-show="selectedItem.Type === 1 && ( selectedItem.SharedInfo == null || selectedItem.SharedInfo.Expired == true)">Share File as Link</a></li>
+                <li><a tabindex="-1" ng-click="showSharingPropertiesDialog(selectedItem, true);" ng-hide="!(selectedItem.SharedInfo != null && selectedItem.SharedInfo.Expired == false)">Share Properties</a></li>
+                <li class="divider" ng-hide="selectedItem.Type !== 1"></li>
+                <li><a tabindex="-1" ng-hide="selectedItem.Type === 1" ng-click="promptNewFolder();">New Folder</a></li>
+                <li class="divider"></li>
+                <li><a tabindex="-1" ng-click="promptCopy();">Copy</a></li>
+                <li><a tabindex="-1" ng-click="promptMove();">Move</a></li>
+                <li class="divider"></li>
+                <li><a tabindex="-1" ng-click="promptDeleteSelectedItems();">Delete</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Modal HTML -->
+    <!--<div id="modalDownloadPrompt" class="modal fade">-->
+    <div id="modalCopyPrompt" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Copy to Folder</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="folderPickerDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable" data-toggle="context" data-target="#context-menu">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in Folders" ng-click="setDestinationFolder(item)" ng-class="{selected: item.FileIdentifier === destinationFolder.FileIdentifier}">
+                                <td><a class="folderPickerLink" data-context="{{item}}"><i class="fa hapi-row-icon {{item.IconClass}}"></i>{{ item.Name }}</a></td>
+                            </tr>
+                        <tfoot />
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="copyItemToDestination();">Copy</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+        // Check whether we need to set the user's picture.  We do if the user's picture hasn't been set yet.  
+        SetUserPic(); // This is done in login, but also here in case that user doesn't have to login because cookies are still valid
+        contextItem.FileIdentifier = null
+        var e = angular.element('#DropboxController');
+        
+        // Tell AngularJS to compile this dynamically loaded partial HTML so it can handle the databinding
+        e.each(function () {
+            var content = $(this);
+            angular.element(e).injector().invoke(function ($compile) {
+                var scope = angular.element(content).scope();
+                $compile(content)(scope);
+            });
+
+            e.scope().GetFilesAndFolders();
+            e.scope().$apply()
+        });
+
+        // Handle click event to navigate to new view
+        $('#naviDataTable').on('click', 'a', function (e) {
+            if ($(this).hasClass('ajax-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                var url = $(this).attr('href');
+                window.location.hash = url;
+                LoadAjaxContent(url);
+            }
+        });
+    });
+
+    $(function(){
+        $(document).on('click', '.fileLink', function(e){
+            e.preventDefault();
+            contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+            console.dir(contextItem);
+            fileClicked();
+        });
+    });
+
+    
+    $(function(){
+        // Handle click event to navigate to new view
+        $('#breadcrumb').on('click', 'a', function (e) {
+            if ($(this).hasClass('breadcrumb-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+             
+                TrimBreadcrumbs(contextItem);
+                var scope = angular.element('#DropboxController').scope();
+                scope.GetFilesAndFolders();
+            }
+        });
+    });
+    
+
+    
+    
+    $(function(){
+        
+        // Add Default Breadcrumbs for Files view
+        ClearBreadcrumbs();
+        AddBreadcrumb({FileIdentifier: "index.html#/ajax/hapiDropbox.html", Name: "Dropbox Files"});
+        UpdateBreadcrumbUI();
+    });
+      
+    function fileClicked() {
+        if( contextItem.Type == 1 )
+        {
+            $("#confirmationMessage").text("Do you want to open " + contextItem.Name + ", or just download it?");
+            $("#modalDownloadPrompt").modal('show');    
+        }
+        else if (contextItem.Type == 2 )
+        {
+            var scope = angular.element('#DropboxController').scope();
+            scope.GetFilesAndFolders();
+            
+            AddBreadcrumb(contextItem);
+            UpdateBreadcrumbUI();
+        }
+    }
+
+    function copyItemToDestination(){
+        var scope = angular.element('#DropboxController').scope();
+        scope.copySelectedItemsToDestination();
+    }
+    
+</script>

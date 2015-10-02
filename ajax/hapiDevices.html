@@ -1,0 +1,85 @@
+<div class="row">
+	<div id="breadcrumb" class="col-md-12">
+		<ol class="breadcrumb">
+			<li><a href="#">Hapi</a></li>
+			<li><a href="#">Devices</a></li>
+		</ol>
+	</div>
+</div>
+<div id="DevicesController" ng-controller="DevicesController" class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-laptop"></i>
+                    <span>Devices</span>
+                    <input placeholder="search" style="position: absolute; right: 90px; height: 22px; top: 2px;" class="ng-valid ng-dirty" ng-model="searchKeyword" type="text">                               </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="expand-link">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                </div>
+                <div class="no-move"></div>
+            </div>
+            <div class="box-content no-padding" style="overflow-x:scroll;">
+                <table id="naviDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>DNS Name</th>
+                            <th>Agent</th>
+                            <th>Operating System</th>
+                            <th>OS Version</th>
+                            <th>OS Service Pack</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in Devices | filter: searchKeyword" ng-click="setSelected(item)" ng-class="{selected: item.FileIdentifier === selectedItem.FileIdentifier}">
+                            <td><a class="ajax-link" href="ajax/hapiDeviceShares.html" data-context="{{item}}" target="_blank"><i class="fa fa-laptop hapi-row-icon"></i>{{ item.ComputerName }}</a></td>
+                            <td>{{ item.DNSName }}</td>
+                            <td><i class="fa {{item.AgentIcon}} hapi-row-icon"></i></td>
+                            <td>{{ item.OperatingSystem }}</td>
+                            <td>{{ item.OSVersion }}</td>
+                            <td>{{ item.OSServicePack }}</td>
+                        </tr>
+                    <tfoot />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        // Check whether we need to set the user's picture.  We do if the user's picture hasn't been set yet.  
+        SetUserPic(); // This is done in login, but also here in case that user doesn't have to login because cookies are still valid
+        
+        // Tell AngularJS to compile this dynamically loaded partial HTML so it can handle the databinding
+        var e = angular.element('#DevicesController');
+        e.each(function () {
+            var content = $(this);
+            angular.element(e).injector().invoke(function ($compile) {
+                var scope = angular.element(content).scope();
+                $compile(content)(scope);
+            });
+
+            e.scope().GetDevices();
+            e.scope().$apply()
+        });
+
+        // Handle click event to navigate to new view
+        $('#naviDataTable').on('click', 'a', function (e) {
+            if ($(this).hasClass('ajax-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                var url = $(this).attr('href');
+                window.location.hash = url;
+                LoadAjaxContent(url);
+            }
+        });
+    });
+</script>

@@ -1,0 +1,54 @@
+.hapi-row-icon {
+    margin-right:4px;
+}
+
+.table-datatable  .selected .table-hover > tbody > tr:hover > td,
+.table-datatable  .selected .table-hover > tbody > tr:hover > th, td.beauty-hover {
+  background-color: #D3E6F5  !important;
+}
+.table-datatable  .selected .table-hover > tbody > tr:hover > td.beauty-hover:hover {
+  background-color: #D3E6F5  !important;
+}
+
+.table-datatable .selected {
+  background-color: #D3E6F5  !important;
+}
+
+.table-striped > tbody > tr.selected:nth-child(odd) > td,
+.table-striped > tbody > tr.selected:nth-child(odd) > th {
+  background-color: #D3E6F5;
+}
+.table-hover > tbody > tr.selected:hover > td,
+.table-hover > tbody > tr.selected:hover > th {
+  background-color: #D3E6F5;
+}
+
+#contextMenu {
+  position: absolute;
+  display:none;
+}
+
+
+/* Changes to hide non-Hapi features from the UI */
+.hapiWebLiteHidden {
+    display:none !important;
+    visibility:hidden !important;
+}
+
+/* Hide some UI Features for Read-Only Roles */
+.UIHidden {
+    display:none !important;
+    visibility:hidden !important;
+}
+
+#logo a {
+  position:relative;
+  background: none !important;
+}
+
+.fileLink {
+	cursor:pointer;
+}
+/* End of changes to hide non-Hapi features from the UI */
+
+

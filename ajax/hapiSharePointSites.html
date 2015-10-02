@@ -1,0 +1,138 @@
+<div class="row">
+	<div id="breadcrumb" class="col-md-12">
+		<ol class="breadcrumb">
+			<li><a href="#">Hapi</a></li>
+			<li><a href="#">Files</a></li>
+		</ol>
+        
+        <div class="qq-upload-button btn btn-success" style="width: auto; position: relative; overflow: hidden; direction: ltr; margin-top: 0px; padding-top: 0px; padding-bottom: 0px; top: 6px; right: 0px; position: absolute;" onClick="PromptAddSharePointSite();">
+            <div><i class="fa fa-plus icon-white"></i>Add a Site</div>
+        </div>        
+        
+	</div>
+</div>
+
+<div id="SharePointSitesController" ng-controller="SharePointSitesController" class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-folder-o"></i>
+                    <span>File Shares</span>
+                    <input placeholder="search" style="position: absolute; right: 90px; height: 22px; top: 2px;" class="ng-valid ng-dirty" ng-model="searchKeyword" type="text">                               </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="expand-link">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                </div>
+                <div class="no-move"></div>
+            </div>
+            <div class="box-content no-padding" style="overflow-x:scroll;">
+                <table id="naviDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable" data-toggle="context" data-target="#context-menu">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in Shares | filter: searchKeyword" ng-click="setSelected(item)" ng-class="{selected: item.FileIdentifier === selectedItem.FileIdentifier}">
+                            <td><a class="ajax-link" href="ajax/hapiSharePointFiles.html" data-context="{{item}}" target="_blank"><i class="fa fa-folder-o hapi-row-icon"></i>{{ item.Name }}</a></td>
+                        </tr>
+                    <tfoot />
+                </table>
+            </div>
+        </div>
+        
+        <!-- Dialog -->
+        <div id="addSharePointSiteDialog" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4>Add SharePoint Site</h4>
+                    </div>
+                    <div id="AddSharePointSiteBodyDiv" class="modal-body form-horizontal" style="max-height: 380px; overflow: auto">
+
+                        <fieldset>
+                            <div class="form-group" style="margin-bottom:0px">
+                                <label class="col-sm-3 control-label">Site Url</label>
+                                <input id="SharePointSiteUrl" class="col-sm-5" type="url"></input>
+                            </div>
+                        </fieldset>
+                        <br/>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="closeAddSharePointSiteButtonId" type="button" class="btn btn-primary" ng-click="addSharepointSite();">Add</button>
+                        <button id="cancelAddSharePointSiteButtonId" type="button" class="btn" onclick="$('#addSharePointSiteDialog').modal('hide');">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+    </div>
+        
+    </div>
+
+    <div style="position: absolute; z-index: 9999; top: 241px; left: 478px;" id="context-menu">
+        <ul style="" class="dropdown-menu" role="menu">
+            <li><a tabindex="-1" ng-click="promptAddSharePointSite();"><i class="fa hapi-row-icon fa-plus"></i>Add Site...</a></li>
+            <li class="divider"></li>
+            <li><a tabindex="-1" ng-click="promptRemoveSelectedSharePointSite();"><i class="fa hapi-row-icon fa-trash"></i>Remove Site...</a></li>
+        </ul>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+        // Check whether we need to set the user's picture.  We do if the user's picture hasn't been set yet.  
+        SetUserPic(); // This is done in login, but also here in case that user doesn't have to login because cookies are still valid
+        
+        // Tell AngularJS to compile this dynamically loaded partial HTML so it can handle the databinding
+        var e = angular.element('#SharePointSitesController');
+        
+        e.each(function () {
+            var content = $(this);
+            
+            e.injector().invoke(function ($compile) {
+                var scope = angular.element(content).scope();
+                $compile(content)(scope);
+            });
+            
+            e.scope().GetShares();
+            e.scope().$apply()
+        });
+
+        // Add Default Breadcrumbs for Files view
+        
+        ClearBreadcrumbs();
+        AddBreadcrumb({FileIdentifier: "", Name: "Files"});
+        UpdateBreadcrumbUI();
+        
+        
+        // Handle click event to navigate to new view
+        $('#naviDataTable').on('click', 'a', function (e) {
+            if ($(this).hasClass('ajax-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                AddBreadcrumb(contextItem);
+
+                var url = $(this).attr('href');
+                window.location.hash = url;
+                LoadAjaxContent(url);
+            }
+        });
+        
+    });
+
+    PromptAddSharePointSite = function(){
+        $('#addSharePointSiteDialog').modal('show');
+    }
+    
+    AddSpecifiedSharePointSite = function(){
+        $('#addSharePointSiteDialog').modal('hide');
+    }
+</script>

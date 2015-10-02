@@ -1,0 +1,391 @@
+
+<div class="row">
+	<div id="breadcrumb" class="col-md-12">
+		<ol class="breadcrumb">
+            <!--
+			<li><a href="#">Hapi</a></li>
+			<li><a href="#">Shares</a></li>
+			<li><a href="#">Files</a></li>
+            -->
+		</ol>
+        
+        <div class="qq-upload-button-selector qq-upload-button btn btn-success" style="width: auto; position: relative; overflow: hidden; direction: ltr; margin-top: 0px; padding-top: 0px; padding-bottom: 0px; top: 6px; right: 0px; position: absolute;">
+            <div><i class="fa fa-upload icon-white"></i>Upload a file</div>
+<input style="position: absolute; right: 0px; top: 0px; font-family: Arial; font-size: 118px; margin: 0px; padding: 0px; cursor: pointer; opacity: 0; height: 100%;" name="qqfile" multiple="" qq-button-id="2b143a26-2c6c-4177-a18b-61fa8be3030e" type="file"></div>
+	</div>
+</div>
+<div id="ADFilesController" ng-controller="ADFilesController" class="row">
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-file"></i>
+                    <span>Files</span>
+                    <input placeholder="search" style="position: absfolute; right: 90px; height: 22px; top: 1px;" class="ng-valid ng-dirty" ng-model="searchKeyword" type="text">                                                       
+                </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="expand-link">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                </div>
+                <div class="no-move"></div>
+            </div>
+            <div class="box-content no-padding" style="overflow-x:scroll;">
+                <table id="naviDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable" data-toggle="context" data-target="#context-menu">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Modified</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in FilesAndFolders | filter: searchKeyword" ng-click="setSelected(item)" ng-right-click="setSelected(item)" ng-class="{selected: item.FileIdentifier === selectedItem.FileIdentifier}" data-context="{{item}}">
+                        <!--
+                        <tr ng-repeat="item in FilesAndFolders | filter: searchKeyword" selection-class="selected" data-context="{{item}}" rowitem='item'>
+                        -->
+                            <td style="padding: 3px 8px 3px 8px"><a class="fileLink" data-context="{{item}}"><img class="fa" src="{{item.ImageSource}}" style="width:28px;">{{ item.Name }}</a></td>
+                            <td>{{ item.FormattedBytes }}</td>
+                            <td style="color: {{ item.DaysSinceModifiedColor }}">{{ item.DaysSinceModified }} days ago</td>
+                            <td>{{ item.CreationDateFormatted }}</td>
+                            <td>{{ item.PathType }}</td>
+                            <td>{{ item.FileIdentifier }}</td>
+                        </tr>
+                    <tfoot />
+                </table>
+            </div>
+        </div>
+        
+        <!-- Context Menu for Files view.  Include under the div where ng-controller is set so we can access scope items like selectedItem -->
+        <div style="position: absolute; z-index: 9999; top: 241px; left: 478px;" id="context-menu">
+            <ul style="" class="dropdown-menu" role="menu">
+                <!--<li><a tabindex="-1" ng-hide="selectedItem.Type !== 1" ng-click="downloadAndOpenItem();"><i class="fa hapi-row-icon fa-play"></i>Open</a></li>-->
+                <li><a tabindex="-1" ng-click="downloadItem();"><i class="fa hapi-row-icon fa-download"></i>Download</a></li>
+                <li><a tabindex="-1" ng-click="promptShareFileAsLink();" class="ng-hide" ng-show="selectedItem.Type === 1 && ( selectedItem.SharedInfo == null || selectedItem.SharedInfo.Expired == true)"><i class="fa hapi-row-icon fa-share"></i>Share File as Link</a></li>
+                <li><a tabindex="-1" ng-click="showSharingPropertiesDialog(selectedItem, true);" ng-hide="!(selectedItem.SharedInfo != null && selectedItem.SharedInfo.Expired == false)"><i class="fa hapi-row-icon fa-link"></i>Shared Link Properties</a></li>
+                <li class="HideForReadOnly divider" ng-hide="selectedItem.Type !== 1"></li>
+                <li class="HideForReadOnly"><a tabindex="-1" ng-hide="selectedItem.Type === 1" ng-click="promptNewFolder();"><i class="fa hapi-row-icon fa-folder"></i>New Folder</a></li>
+                <li class="HideForReadOnly divider"></li>
+                <li class="HideForReadOnly"><a tabindex="-1" ng-click="promptCopy('shares');"><i class="fa hapi-row-icon fa-windows"></i>Copy to My Domain...</a></li>
+                <li class="HideForReadOnly"><a tabindex="-1" ng-click="promptCopy('Box');"><i class="fa hapi-row-icon fa-copy"></i>Copy to Box...</a></li>
+                <li class="HideForReadOnly"><a tabindex="-1" ng-click="promptCopy('Dropbox');"><i class="fa hapi-row-icon fa-dropbox"></i>Copy to Dropbox...</a></li>
+                <li class="HideForReadOnly divider"></li>
+                <li class="HideForReadOnly"><a tabindex="-1" ng-click="promptDeleteSelectedItems();"><i class="fa hapi-row-icon fa-trash"></i>Delete...</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal HTML -->
+    <!--<div id="modalDownloadPrompt" class="modal fade">-->
+    <div id="modalCopyPrompt" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Copy to Folder</h4>
+                </div>
+                <div class="modal-body">
+                    
+                            <!--<h4 class="page-header">My Domain</h4>-->
+                        <div style="display: block;" class="box-content">
+                            <div class="row">
+                                <table id="folderPickerDataTable" class="table table-bordered table-striped table-hover table-heading table-datatable" data-toggle="context" data-target="#context-menu">
+                                    <thead>
+                                        <!--
+                                        <tr>
+                                            <th>Name</th>
+                                        </tr>-->
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in Folders" ng-click="setDestinationFolder(item)" ng-class="{selected: item.FileIdentifier === destinationFolder.FileIdentifier}">
+                                            <td><a class="folderPickerLink" data-context="{{item}}"><i class="fa hapi-row-icon {{item.IconClass}}"></i>{{ item.Name }}</a></td>
+                                        </tr>
+                                    <tfoot />
+                                </table>
+                            </div>
+                        </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="box ui-draggable ui-droppable" style="border-radius:5px;">
+                                <div class="btn-primary btn-label btn-block btn-sm collapse-link">
+                                    <div class="box-name ui-draggable-handle" style="cursor: pointer">
+                                        <i class="fa fa-circle"></i>
+                                        <span>When: Now</span>
+                                    </div>
+                                    <div class="box-icons  btn-sm">
+                                        <a style="border:none">
+                                            <i class="fa fa-chevron-down" style="color:#FFF"></i>
+                                        </a>
+                                    </div>
+                                    <div class="no-move"></div>
+                                </div>
+
+                                <div style="display: none;" class="box-content">
+                                    <p>Begin at the following time:</p>
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" id="copystarttime" placeholder="Start Time">
+                                                <span class="fa fa-clock-o txt-danger form-control-feedback" style="top:8px; right:10px;"></span>                                             </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-6">
+                            <div class="box ui-draggable ui-droppable" style="border-radius:5px;">
+                                <div class="btn-primary btn-label btn-block btn-sm collapse-link">
+                            <div class="box-name ui-draggable-handle">
+                                <i class="fa fa-circle"></i>
+                                <span>Synchronization: Off</span>
+                            </div>
+                            <div class="box-icons  btn-sm">
+                                <a style="border: none;">
+                                    <i class="fa fa-chevron-down"  style="color:#FFF"></i>
+                                </a>
+                            </div>
+                            <div class="no-move"></div>
+                        </div>
+                        <div style="display: none;" class="box-content">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="toggle-switch toggle-switch-success">
+                                        <label>
+                                            <input type="checkbox">
+                                            <div class="toggle-switch-inner"></div>
+                                            <div class="toggle-switch-switch"><i class="fa fa-check"></i></div>
+                                        </label>
+                                    </div>
+                                    <p>Keep source and destination in sync with each other every:</p>
+                                    <div class="col-sm-12">
+                                        
+                                        <!-- Interval Number -->
+                                        <span class="ui-spinner ui-widget ui-widget-content ui-corner-all">
+                                            <input role="spinbutton" autocomplete="off" id="ui-spinner" class="form-control ui-spinner-input" placeholder="4" type="text">
+                                            <a tabindex="-1" class="ui-spinner-button ui-spinner-up ui-corner-tr">
+                                                <span class="ui-icon ui-icon-triangle-1-n">▲</span>
+                                            </a>
+                                            <a tabindex="-1" class="ui-spinner-button ui-spinner-down ui-corner-br">
+                                                <span class="ui-icon ui-icon-triangle-1-s">▼</span>
+                                            </a>
+                                        </span>
+
+                                        <!-- Interval Type -->
+                                    <div style="margin-top:10px;">
+						              <div id="s2id_el2" class="select2-container">
+                                          <a href="javascript:void(0)" class="select2-choice" tabindex="-1">
+                                              <span id="select2-chosen-4" class="select2-chosen">Hours</span>
+                                              <abbr class="select2-search-choice-close"></abbr>
+                                              <span class="select2-arrow" role="presentation"><b role="presentation"></b></span>
+                                          </a>
+                                          <label for="s2id_autogen4" class="select2-offscreen"></label>
+                                          <input id="s2id_autogen4" aria-labelledby="select2-chosen-4" class="select2-focusser select2-offscreen" aria-haspopup="true" role="button" type="text">
+                                        </div>
+                                        <select class="select2-offscreen" title="" tabindex="-1" id="el2">
+                                            <option>Minutes</option>
+                                            <option>Hours</option>
+                                            <option>Days</option>
+                                        </select>
+                                    </div>  
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="box ui-draggable ui-droppable" style="border-radius:5px;">
+                                <div class="btn-primary btn-label btn-block btn-sm collapse-link">
+                                    <div class="box-name ui-draggable-handle">
+                                        <i class="fa fa-circle"></i>
+                                        <span>Conflicts: Overwrite</span>
+                                    </div>
+                                    <div class="box-icons btn-sm">
+                                        <a style="border:none;">
+                                            <i class="fa fa-chevron-down"  style="color:#FFF"></i>
+                                        </a>
+                                    </div>
+                                    <div class="no-move"></div>
+                                </div>
+                                <div id="copyFileConflictSection" style="display: none;" class="box-content">
+                                    <!--<h4 class="page-header">Stuff Here</h4>-->
+                                    <p>When the destination has an item with the same name: </p>
+                                    <div class="row form-group">
+                                        <div class="col-sm-12">
+                                            <div class="radio">
+                                                <label>
+                                                    <input name="collisionBehavior" checked="" type="radio" value="Overwrite" > Overwrite
+                                                    <i class="fa fa-circle-o"></i>
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input name="collisionBehavior" type="radio" value="Skip" > Skip
+                                                    <i class="fa fa-circle-o"></i>
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input name="collisionBehavior" type="radio" value="KeepBoth" > Keep Both
+                                                    <i class="fa fa-circle-o"></i>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>                        
+                                    
+                                    <div class="row form-group">
+                                        <div class="col-sm-12">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input id="rememberCollisionSetting" checked="" type="checkbox"> Remember this choice
+                                                    <i class="fa fa-square-o"></i>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal" onclick="copyItemToDestination();">Copy</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+        // Check whether we need to set the user's picture.  We do if the user's picture hasn't been set yet.  
+        SetUserPic(); // This is done in login, but also here in case that user doesn't have to login because cookies are still valid
+        ShowHideRoleFeatures();
+        
+        var e = angular.element('#ADFilesController');
+        
+        // Tell AngularJS to compile this dynamically loaded partial HTML so it can handle the databinding
+        e.each(function () {
+            var content = $(this);
+            e.injector().invoke(function ($compile) {
+                var scope = angular.element(content).scope();
+                $compile(content)(scope);
+            });
+
+            e.scope().GetFilesAndFolders();
+            e.scope().$apply()
+        });
+
+        // Handle click event to navigate to new view
+        $('#naviDataTable').on('click', 'a', function (e) {
+            if ($(this).hasClass('ajax-link')) {
+                //console.dir(e);
+                //console.dir($(this));
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                //console.log("contextItem:");
+                //console.dir(contextItem);
+                var url = $(this).attr('href');
+                window.location.hash = url;
+                LoadAjaxContent(url);
+            }
+        });
+        
+    });
+
+    $(function(){
+        $(document).on('click', '.fileLink', function(e){
+            e.preventDefault();
+            contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+            console.dir(contextItem);
+            fileClicked();
+        });
+        
+        $(document).on('click', '.folderPickerLink', function(e){
+            e.preventDefault();
+            folderPickerContextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+            console.dir(folderPickerContextItem);
+            folderPickerClicked();
+        });
+        
+    });
+
+    
+    $(function(){
+        // Handle click event to navigate to new view
+        $('#breadcrumb').on('click', 'a', function (e) {
+            if ($(this).hasClass('breadcrumb-link')) {
+                e.preventDefault();
+                contextItem = JSON.parse($(this).attr("data-context")); // Set the selected item as the context for the next page
+                //console.log("contextItem:");
+                //console.dir(contextItem);
+                //var url = $(this).attr('href');
+                //window.location.hash = url;
+                //LoadAjaxContent(url);
+             
+                TrimBreadcrumbs(contextItem);
+                var scope = angular.element('#ADFilesController').scope();
+                //scope.setDestinationFolder(contextItem);
+                scope.GetFilesAndFolders();
+            }
+        });
+    });
+    
+
+    
+    
+    $(function(){
+        UpdateBreadcrumbUI();
+    });
+      
+    function fileClicked() {
+        if( contextItem.Type == 1 )
+        {
+            $("#confirmationMessage").text("Do you want to open " + contextItem.Name + ", or just download it?");
+            $("#modalDownloadPrompt").modal('show');    
+        }
+        else if (contextItem.Type == 2 )
+        {
+            var scope = angular.element('#ADFilesController').scope();
+            scope.GetFilesAndFolders();
+            
+            AddBreadcrumb(contextItem);
+            UpdateBreadcrumbUI();
+        }
+    }
+
+    function folderPickerClicked() {
+        if (folderPickerContextItem.Type == 2 ) // if Folder
+        {
+            var scope = angular.element('#ADFilesController').scope();
+            scope.GetFolders(folderPickerContextItem.FileIdentifier);
+        }
+    }
+    
+    function copyItemToDestination(){
+        
+        var scope = angular.element('#ADFilesController').scope();
+        scope.setDestinationFolder(folderPickerContextItem); // context item is the last folder link that was clicked or row that was selected
+        scope.copySelectedItemsToDestination();
+    }
+    
+</script>
